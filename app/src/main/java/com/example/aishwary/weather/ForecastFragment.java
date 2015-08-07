@@ -3,6 +3,7 @@ package com.example.aishwary.weather;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.format.Time;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,12 +15,17 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,12 +55,12 @@ public class ForecastFragment extends Fragment {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
+    public boolean onOptionsItemSelected(MenuItem item) {
         //Handle action bar item clicks here. The action bar will automatically
         //handle clicks on the Home/up button so long as you specify
         //a parent activity in android manifest.xml
         int id = item.getItemId();
-        if (id == R.id.action_refresh){
+        if (id == R.id.action_refresh) {
             //return true;
             FetchWeatherTask weatherTask = new FetchWeatherTask();
             weatherTask.execute("10003");
@@ -62,6 +68,7 @@ public class ForecastFragment extends Fragment {
         }
         return super.onOptionsItemSelected(item);
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -98,20 +105,89 @@ public class ForecastFragment extends Fragment {
         return rootView;
     }
 
-    public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
+    public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
+
 
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
+        private String getReadableDateString(long time) {
+            SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE MMM dd");
+            return shortenedDateFormat.format(time);
+        }
+
+        // prepare the high/lows
+
+        private String formatHighLows(double high, double low) {
+            //For presentation,lets assume the user doesnt care about tenths of a degree
+            long roundedHigh = Math.round(high);
+            long roundedLow = Math.round(low);
+
+            String highLowStr = roundedHigh + "/" + roundedLow;
+            return highLowStr;
+        }
+
+        private String[] getWeatherDataFromJson(String forecastJsonStr, int numDays) throws
+                JSONException {
+
+            // names of the JSON objects that are needed to be extracted
+
+            final String OWM_LIST = "list";
+            final String OWM_WEATHER = "weather";
+            final String OWM_TEMPERATURE = "temp";
+            final String OWM_MAX = "max";
+            final String OWM_MIN = "min";
+            final String OWM_DESCRIPTION = "main";
+            JSONObject forecastJSON = new JSONObject(forecastJsonStr);
+            JSONArray weatherArray = forecastJSON.getJSONArray(OWM_LIST);
+
+            Time dayTime = new Time();
+            dayTime.setToNow();
+            //we start at the day returned by the local time.Otherwise its a mess
+
+            int julianStartDay = Time.getJulianDay(System.currentTimeMillis(), dayTime.gmtoff);
+
+            dayTime = new Time();
+            String[] resultStrs = new String[numDays];
+            for (int i = 0; i < weatherArray.length(); i++) {
+                String day;
+                String description;
+                String highAndLow;
+
+                JSONObject dayForecast = weatherArray.getJSONObject(i);
+
+                long dateTime;
+
+                dateTime = dayTime.setJulianDay(julianStartDay + i);
+                day = getReadableDateString(dateTime);
+                //description is in a child array called "weather", which is 1 element long
+
+                JSONObject weatherObject = dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
+                description = weatherObject.getString(OWM_DESCRIPTION);
+
+                JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
+                double high = temperatureObject.getDouble(OWM_MAX);
+                double low = temperatureObject.getDouble(OWM_MIN);
+
+                highAndLow = formatHighLows(high, low);
+                resultStrs[i] = day + " - " + description + " - " + highAndLow;
+
+
+            }
+
+            for (String s : resultStrs) {
+                Log.v(LOG_TAG, "Forecast entry: " + s);
+            }
+            return resultStrs;
+        }
+
 
         @Override
-        protected Void doInBackground(String... params) {
-             //if there is no zip code, there is nothing to look up.Verify size of params
+        protected String[] doInBackground(String... params) {
+            //if there is no zip code, there is nothing to look up.Verify size of params
 
-             if(params.length == 0){
-                 return null;
-             }
-
-
+            if (params.length == 0) {
+                return null;
+            }
 
 
             //these two need  to be declared outside the
@@ -173,31 +249,46 @@ public class ForecastFragment extends Fragment {
 
                 forecastJsonStr = buffer.toString();
 
+                Log.v(LOG_TAG, "Forecast string: " + forecastJsonStr);
+
 
             } catch (IOException e) {
                 //e.printStackTrace();
-                Log.e("PlaceholderFragment", "Error", e);
+                Log.e("LOG.TAG", "Error", e);
                 //If the code didnt successfully get the weather data, there is no point
                 //in attempting to parse it.
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e("PlaceholderFragment", "Error closing stream", e);
-                    }
-                }
+
             }
 
 
+            try {
+                return getWeatherDataFromJson(forecastJsonStr, numDays);
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+                e.printStackTrace();
+            }
+
             return null;
+            // This will only happen if there was an error getting or parsing the forecast
 
         }
+
+        @Override
+        protected void onPostExecute(String[] result) {
+            if (result != null) {
+                mForecastAdapter.clear();
+                for (String dayForecastStr : result) {
+                    mForecastAdapter.add(dayForecastStr);
+
+                    //New Data is back From the server
+                }
+            }
+
+        }
+
+
     }
 }
+
 
 
