@@ -27,7 +27,7 @@ import com.example.aishwary.weather.data.WeatherContract.WeatherEntry;
  */
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
      private static final String LOG_TAG = DetailFragment.class.getSimpleName();
-     private static final String FORECAST_SHARE_HASHTAG = " #SunshineApp";
+     private static final String FORECAST_SHARE_HASHTAG = " #WeatherApp";
      private ShareActionProvider mShareActionProvider;
     private String mForecast;
 
@@ -125,7 +125,7 @@ public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Log.v(LOG_TAG, "In onCreateLoader");
         Intent intent = getActivity().getIntent();
-        if (intent == null){
+        if (intent == null || intent.getData() == null){
             return null;
         }
         //now create and return a cursorloader that will take care of
@@ -147,8 +147,8 @@ public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
              //Read weather condition id from the cursor
              int weatherId = data.getInt(COL_WEATHER_CONDITION_ID);
              // Use placeholder Image
-             mIconView.setImageResource(R.drawable.ic_launcher);
-
+             //mIconView.setImageResource(R.drawable.ic_launcher);
+               mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
              //read date from cursor and update views for day of week and date
              long date = data.getLong(COL_WEATHER_DATE);
              String friendlyDateText = Utility.getDayName(getActivity(), date);

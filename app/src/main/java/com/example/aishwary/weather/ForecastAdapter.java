@@ -70,6 +70,18 @@ public class ForecastAdapter extends CursorAdapter {
         // our view is pretty simple here --- just a text view
         // we'll keep the UI functional with a simple (and slow!) binding.
          ViewHolder viewHolder = (ViewHolder) view.getTag();
+        int viewType = getItemViewType(cursor.getPosition());
+        switch (viewType){
+            case VIEW_TYPE_TODAY: {
+                viewHolder.iconView.setImageResource(Utility.getArtResourceForWeatherCondition(
+                        cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID)));
+                break;
+            }case VIEW_TYPE_FUTURE_DAY: {
+                viewHolder.iconView.setImageResource(Utility.getArtResourceForWeatherCondition(
+                        cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID)));
+                break;
+            }
+        }
 
         // Read weather icon ID from cursor
         //int weatherId = cursor.getInt(ForecastFragment.COL_WEATHER_ID);
@@ -77,7 +89,8 @@ public class ForecastAdapter extends CursorAdapter {
         //ImageView iconView = (ImageView)view.findViewById(R.id.list_item_icon);
         //iconView.setImageResource(R.drawable.ic_launcher);
         //read date from the cursor
-         viewHolder.iconView.setImageResource(R.drawable.ic_launcher);
+         //viewHolder.iconView.setImageResource(R.drawable.ic_launcher);
+
         long dateInMillis = cursor.getLong(ForecastFragment.COL_WEATHER_DATE);
 
         //TextView dateVIew = (TextView)view.findViewById(R.id.list_item_date_textview);
