@@ -174,7 +174,20 @@ public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
              float humidity = data.getFloat(COL_WEATHER_HUMIDITY);
              mHumidityView.setText(getActivity().getString(R.string.format_humidity, humidity));
 
+           //Read wind speed and direction from cursor and update view
+             float windSpeedStr = data.getFloat(COL_WEATHER_WIND_SPEED);
+             float windDirStr = data.getFloat(COL_WEATHER_DEGREES);
+             mWindView.setText(Utility.getFormattedWind(getActivity(), windSpeedStr, windDirStr));
 
+             float pressure = data.getFloat(COL_WEATHER_PRESSURE);
+             mPressureView.setText(getActivity().getString(R.string.format_pressure, pressure));
+             // We still need this for the share intent
+             mForecast = String.format("%s - %s - %s/%s", dateText, description, high, low);
+
+             // If onCreateOptionsMenu has already happened, we need to update the share intent now.
+             if(mShareActionProvider != null){
+                 mShareActionProvider.setShareIntent(createShareForecastIntent());
+             }
          }
     }
 
