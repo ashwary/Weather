@@ -12,11 +12,11 @@ import android.view.MenuItem;
 public class MainActivity extends ActionBarActivity {
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private final String FORECASTFRAGMENT_TAG = "FFTAG";
-    private String mLocation;
+    private String mLocation;  // Variable to store our current known location
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mLocation = Utility.getPreferredLocation(this);
+        mLocation = Utility.getPreferredLocation(this);// Initialize this variable in onCreate to be whatever is currently stored in the settings
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
