@@ -18,6 +18,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.aishwary.weather.data.WeatherContract;
+import com.example.aishwary.weather.sync.WeatherSyncAdapter;
 
 /**
  * Created by Aishwary on 8/5/2015.
@@ -162,11 +163,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private void updateWeather() {
-        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
-        String location = Utility.getPreferredLocation(getActivity());
-
-        weatherTask.execute(location);
-
+        WeatherSyncAdapter.syncImmediately(getActivity());
     }
              @Override
              public void onSaveInstanceState(Bundle outstate){
