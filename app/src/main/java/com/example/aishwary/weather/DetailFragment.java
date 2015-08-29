@@ -26,9 +26,9 @@ import com.example.aishwary.weather.data.WeatherContract.WeatherEntry;
  * Created by Aishwary on 8/19/2015.
  */
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
+    private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
-    static  final String DETAIL_URI = "URI";
+    static final String DETAIL_URI = "URI";
 
     private static final String FORECAST_SHARE_HASHTAG = " #WeatherApp";
 
@@ -38,6 +38,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private Uri mUri;
 
     private static final int DETAIL_LOADER = 0;
+
     private static final String[] DETAIL_COLUMNS = {
             WeatherEntry.TABLE_NAME + "." + WeatherEntry._ID,
             WeatherEntry.COLUMN_DATE,
@@ -59,7 +60,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     public static final int COL_WEATHER_ID = 0;
     public static final int COL_WEATHER_DATE = 1;
-    public static final int COL_WEATHER_DESC =2;
+    public static final int COL_WEATHER_DESC = 2;
     public static final int COL_WEATHER_MAX_TEMP = 3;
     public static final int COL_WEATHER_MIN_TEMP = 4;
     public static final int COL_WEATHER_HUMIDITY = 5;
@@ -78,18 +79,19 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private TextView mWindView;
     private TextView mPressureView;
 
-    public DetailFragment(){
+    public DetailFragment() {
         setHasOptionsMenu(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState){
+                             Bundle savedInstanceState) {
 
         Bundle arguments = getArguments();
-        if (arguments != null){
+        if (arguments != null) {
             mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
         }
+
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         mIconView = (ImageView) rootView.findViewById(R.id.detail_icon);
         mDateView = (TextView) rootView.findViewById(R.id.detail_date_textview);
@@ -103,29 +105,32 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         return rootView;
     }
 
-@Override
-public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
-    //inflate the menu, this adds items to the action bar if they are present
-    inflater.inflate(R.menu.detailfragment, menu);
-    //Retrieve the share menu item
-    MenuItem menuItem = menu.findItem(R.id.action_share);
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        //inflate the menu, this adds items to the action bar if they are present
+        inflater.inflate(R.menu.detailfragment, menu);
+        //Retrieve the share menu item
+        MenuItem menuItem = menu.findItem(R.id.action_share);
 
-    //get the share action provider and hold onto it to set/change the share intent
-    mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+        //get the share action provider and hold onto it to set/change the share intent
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
 
-    //if on loadfinished happens before this, we can go ahead and set the share intent now
-    if (mForecast != null)
-        mShareActionProvider.setShareIntent(createShareForecastIntent());
+        //if on loadfinished happens before this, we can go ahead and set the share intent now
+        if (mForecast != null) {
+            mShareActionProvider.setShareIntent(createShareForecastIntent());
 
-}
-    private Intent createShareForecastIntent(){
+        }
+    }
+
+
+    private Intent createShareForecastIntent() {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
         shareIntent.setType("text/plain");
         shareIntent.putExtra(Intent.EXTRA_TEXT, mForecast + FORECAST_SHARE_HASHTAG);
         return shareIntent;
-
     }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState){
         getLoaderManager().initLoader(DETAIL_LOADER, null, this);
@@ -165,7 +170,6 @@ public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
         }
         //now create and return a cursorloader that will take care of
         // creating a cursor for the data being displayed
-
         return null;
     }
 
@@ -174,8 +178,7 @@ public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
          if (data != null && data.moveToFirst()){
              //Read weather condition id from the cursor
              int weatherId = data.getInt(COL_WEATHER_CONDITION_ID);
-             // Use placeholder Image
-             //mIconView.setImageResource(R.drawable.ic_launcher);
+             // Use weather Art
                mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
              //read date from cursor and update views for day of week and date
              long date = data.getLong(COL_WEATHER_DATE);
@@ -188,16 +191,21 @@ public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
              String description = data.getString(COL_WEATHER_DESC);
              mDescriptionView.setText(description);
 
+             //For accessibility, add a content description to the icon field
+             mIconView.setContentDescription(description);
+
              //Read high temperature from cursor and update view
              boolean isMetric = Utility.isMetric(getActivity());
 
              double high = data.getDouble(COL_WEATHER_MAX_TEMP);
-             String highString = Utility.formatTemperature(getActivity(), high, isMetric);
+             String highString = Utility.formatTemperature(getActivity(), high);
              mHighTempView.setText(highString);
              //Read low temperature from cursor and update view
              double low = data.getDouble(COL_WEATHER_MIN_TEMP);
-             String lowString = Utility.formatTemperature(getActivity(), low, isMetric);
+             String lowString = Utility.formatTemperature(getActivity(), low);
              mLowTempView.setText(lowString);
+
+
              //Read humidity from cursor and update view
              float humidity = data.getFloat(COL_WEATHER_HUMIDITY);
              mHumidityView.setText(getActivity().getString(R.string.format_humidity, humidity));
@@ -211,6 +219,7 @@ public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
              mPressureView.setText(getActivity().getString(R.string.format_pressure, pressure));
              // We still need this for the share intent
              mForecast = String.format("%s - %s - %s/%s", dateText, description, high, low);
+
 
              // If onCreateOptionsMenu has already happened, we need to update the share intent now.
              if(mShareActionProvider != null){

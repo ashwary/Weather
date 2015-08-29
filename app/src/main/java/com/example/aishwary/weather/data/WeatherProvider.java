@@ -128,10 +128,7 @@ public class WeatherProvider extends ContentProvider {
         return true;
     }
 
-    /*
-        Students: Here's where you'll code the getType function that uses the UriMatcher.  You can
-        test this by uncommenting testGetType in TestProvider.
-     */
+
     @Override
     public String getType(Uri uri) {
 

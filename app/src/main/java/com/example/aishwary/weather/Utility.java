@@ -18,7 +18,6 @@ public class Utility {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getString(context.getString(R.string.pref_location_key),
                 context.getString(R.string.pref_location_default));
-
     }
 
     public static  boolean isMetric(Context context){
@@ -29,18 +28,23 @@ public class Utility {
 
     }
 
-         static String formatTemperature(Context context, double temperature, boolean isMetric){
-        double temp;
-        if(!isMetric) {
-            temp = 9 * temperature / 5 + 32;
-        }else {
-            temp = temperature;
-        }
+        public static String formatTemperature(Context context, double temperature){
+        //double temp;
+       // if(!isMetric) {
+            //temp = 9 * temperature / 5 + 32;
+        //}else {
+            //temp = temperature;
+      //  }
        // return String.format("%.0f", temp);
-              return context.getString(R.string.format_temperature, temp);
+            String suffix = "\u00B0";
+            if (!isMetric(context)){
+                temperature = (temperature * 1.8) + 32;
+            }
+              //return context.getString(R.string.format_temperature, temp);
+            return String.format(context.getString(R.string.format_temperature), temperature);
     }
-           static String formatDate(long dateInMillis){
-               Date date = new Date(dateInMillis);
+           static String formatDate(long dateInMilliseconds){
+               Date date = new Date(dateInMilliseconds);
                return DateFormat.getDateInstance().format(date);
 
 
@@ -48,7 +52,7 @@ public class Utility {
 
     // Format used for storing dates in the database.  ALso used for converting those strings
     // back into date objects for comparison/processing.
-    public static final String DATE_FORMAT = "yyyyMMDD";
+    public static final String DATE_FORMAT = "yyyyMMdd";
     /**
      * Helper method to convert the database representation of the date into something to display
      * to users.  As classy and polished a user experience as "20140102" is, we can do better.
@@ -104,7 +108,7 @@ public class Utility {
             if(julianDay == currentJulianDay){
                 return context.getString(R.string.today);
 
-            }else if (julianDay == currentJulianDay + 1){
+            }else if (julianDay == currentJulianDay +1 ){
                 return context.getString(R.string.tomorrow);
 
             }else {
@@ -135,7 +139,8 @@ public class Utility {
           if (Utility.isMetric(context)) {
               windFormat = R.string.format_wind_kmh;
 
-          } else { windFormat = R.string.format_wind_mph;
+          } else {
+              windFormat = R.string.format_wind_mph;
               windSpeed = .621371192237334f * windSpeed;
       }
 // From wind direction in degrees, determine compass direction as a string (e.g NW)

@@ -12,7 +12,8 @@ import android.preference.PreferenceManager;
 /**
  * Created by Aishwary on 8/7/2015.
  */
-public class SettingsActivity extends PreferenceActivity implements Preference.OnPreferenceChangeListener {
+public class SettingsActivity extends PreferenceActivity
+        implements Preference.OnPreferenceChangeListener {
 
 
 
@@ -80,7 +81,7 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
 
               @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @Override
-    public Intent getParentActivityIntent(){
+    public Intent getParentActivityIntent() {
                   return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
               }
 }
