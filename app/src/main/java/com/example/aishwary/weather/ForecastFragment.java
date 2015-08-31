@@ -2,9 +2,11 @@ package com.example.aishwary.weather;
 
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -18,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.aishwary.weather.data.WeatherContract;
 import com.example.aishwary.weather.sync.WeatherSyncAdapter;
@@ -25,7 +28,7 @@ import com.example.aishwary.weather.sync.WeatherSyncAdapter;
 /**
  * Created by Aishwary on 8/5/2015.
  */
-public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final String LOG_TAG = ForecastFragment.class.getSimpleName();
     private ForecastAdapter mForecastAdapter;
@@ -68,7 +71,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     static final int COL_WEATHER_CONDITION_ID = 6;
     static final int COL_COORD_LAT = 7;
     static final int COL_COORD_LONG = 8;
-   //private ForecastAdapter mForecastAdapter;
+
+
+    //private ForecastAdapter mForecastAdapter;
 
     //A callback interface that other activities containing this fragment must implement.this
     //mechanism allows activities to be notified of item selection
@@ -90,6 +95,21 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         //Add this line in order for this fragment to handle menu events
         setHasOptionsMenu(true);
     }
+    @Override
+    public void onResume(){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sp.registerOnSharedPreferenceChangeListener(this);
+        super.onResume();
+
+    }
+
+    @Override
+    public void onPause(){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sp.unregisterOnSharedPreferenceChangeListener(this);
+        super.onPause();
+    }
+
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -123,6 +143,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
         //Get a reference to the listview and attach this adapter to it
         mListView = (ListView) rootView.findViewById(R.id.listView_forecast);
+        View emptyView = rootView.findViewById(R.id.listview_forecast_empty);
+        mListView.setEmptyView(emptyView);
         mListView.setAdapter(mForecastAdapter);
         //Set on Click Listener on the listView
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -239,7 +261,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             // to, do so now.
             mListView.smoothScrollToPosition(mPosition);
         }
-
+          updateEmptyView();
     }
 
     @Override
@@ -253,7 +275,50 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
         }
     }
-}
+
+    /*
+        Updates the empty list view with contextually relevant information that the user can
+        use to determine why they aren't seeing weather.
+     */
+
+      private void updateEmptyView(){
+          if ( mForecastAdapter.getCount() == 0 ){
+              TextView tv = (TextView)getView().findViewById(R.id.listview_forecast_empty);
+              if ( null != tv) {
+                  int message = R.string.empty_forecast_list;
+                  @WeatherSyncAdapter.LocationStatus int location = Utility.getLocationStatus(getActivity());
+
+                  switch (location) {
+                      case WeatherSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
+                          message = R.string.empty_forecast_list_server_down;
+                          break;
+                      case WeatherSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
+                          message = R.string.empty_forecast_list_server_down;
+                          break;
+
+                      case WeatherSyncAdapter.LOCATION_STATUS_INVALID:
+                          message = R.string.empty_forecast_list_invalid_location;
+                  }
+                  if ( !Utility.isNetworkAvailable(getActivity()) ){
+                      message = R.string.empty_forecast_list_no_network;
+                  }
+
+                  tv.setText(message);
+              }
+          }
+      }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if ( key.equals(getString(R.string.pref_location_status_key))) {
+            updateEmptyView();
+        }
+
+    }
+
+
+    }
+
 
 
 
