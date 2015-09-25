@@ -3,27 +3,47 @@ package com.example.aishwary.weather;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
+import com.example.aishwary.weather.data.WeatherContract;
 import com.example.aishwary.weather.sync.WeatherSyncAdapter;
 
 
-public class MainActivity extends ActionBarActivity implements ForecastFragment.Callback {
+public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback {
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
+    //private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+   // public static final String PROPERTY_REG_ID = "registration_id";
+   // private static final String PROPERTY_APP_VERSION = "appVersion";
+
+
+
 
     private boolean mTwoPane;
-    private String mLocation;  // Variable to store our current known location
+    private String mLocation;
+    //private GoogleCloudMessaging mGcm;
+
+     // Variable to store our current known location
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Initialize this variable in onCreate to be whatever is currently stored in the settings
         super.onCreate(savedInstanceState);
         mLocation = Utility.getPreferredLocation(this);
+        Uri contentUri = getIntent() != null ? getIntent().getData() : null;
 
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+
         if (findViewById(R.id.weather_detail_container) != null) {
             // The detail container view will be present only in the large-screen layouts
             // (res/layout-sw600dp). If this view is present, then the activity should be
@@ -33,8 +53,14 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
             // adding or replacing the detail fragment using a
             // fragment transaction.
             if (savedInstanceState == null) {
+                DetailFragment fragment = new DetailFragment();
+                if (contentUri != null) {
+                    Bundle args = new Bundle();
+                    args.putParcelable(DetailFragment.DETAIL_URI, contentUri);
+                    fragment.setArguments(args);
+                }
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.weather_detail_container, new DetailFragment(), DETAILFRAGMENT_TAG)
+                        .replace(R.id.weather_detail_container, fragment, DETAILFRAGMENT_TAG)
                         .commit();
             }
         } else {
@@ -42,12 +68,24 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
             getSupportActionBar().setElevation(0f);
         }
 
-        ForecastFragment forecastFragment = ((ForecastFragment) getSupportFragmentManager()
+        ForecastFragment forecastFragment = ((ForecastFragment)getSupportFragmentManager()
                 .findFragmentById(R.id.fragment_forecast));
         forecastFragment.setUseTodayLayout(!mTwoPane);
 
+
+        if (contentUri != null) {
+            forecastFragment.setInitialSelectedDate(
+                    WeatherContract.WeatherEntry.getDateFromUri(contentUri));
+        }
+
         WeatherSyncAdapter.initializeSyncAdapter(this);
-    }
+
+        // this is where we could either prompt a user that they should install
+            // the latest version of Google Play Services, or add an error snackbar
+            // that some features won't be available.
+
+        }
+
 
 
     @Override
@@ -78,7 +116,9 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
     @Override
     protected void onResume() {
         super.onResume();
-        String location = Utility.getPreferredLocation( this );
+        //String location = Utility.getPreferredLocation(this);
+
+        String location = Utility.getPreferredLocation(this);
         // update the location in our second pane using the fragment manager
         if (location != null && !location.equals(mLocation)) {
             ForecastFragment ff = (ForecastFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
@@ -95,7 +135,7 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
 
 
     @Override
-    public void onItemSelected(Uri contentUri) {
+    public void onItemSelected(Uri contentUri,  ForecastAdapter.ForecastAdapterViewHolder vh) {
         if (mTwoPane) {
             //in two pane mode, show the detail view in this activity by
             //adding or replacing the detail fragment using a fragment
@@ -112,8 +152,15 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
         } else {
             Intent intent = new Intent(this, DetailActivity.class)
                     .setData(contentUri);
-            startActivity(intent);
+            ActivityOptionsCompat activityOptions =
+            ActivityOptionsCompat.makeSceneTransitionAnimation(this,
+                    new Pair<View, String>(vh.mIconView, getString(R.string.detail_icon_transition_name)));
+            ActivityCompat.startActivity(this, intent, activityOptions.toBundle());
+
         }
     }
+
+
+
 }
 

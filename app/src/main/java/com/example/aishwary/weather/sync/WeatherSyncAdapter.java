@@ -2,6 +2,7 @@ package com.example.aishwary.weather.sync;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.AbstractThreadedSyncAdapter;
@@ -28,10 +29,12 @@ import android.support.v4.app.TaskStackBuilder;
 import android.text.format.Time;
 import android.util.Log;
 
+import com.bumptech.glide.Glide;
 import com.example.aishwary.weather.MainActivity;
 import com.example.aishwary.weather.R;
 import com.example.aishwary.weather.Utility;
 import com.example.aishwary.weather.data.WeatherContract;
+import com.example.aishwary.weather.muzei.WeatherMuzeiSource;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,13 +49,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
+
+
 
 /**
  * Created by Aishwary on 8/23/2015.
  */
 public class WeatherSyncAdapter extends AbstractThreadedSyncAdapter {
     public final String LOG_TAG = WeatherSyncAdapter.class.getSimpleName();
-    // Interval at which to sync with the weather, in seconds.
+    public static final String ACTION_DATA_UPDATED =
+            "com.example.aishwary.weather.ACTION_DATA_UPDATED";
+    // Interval at which to sync with the com.tandon.aishwary.weather, in seconds.
     // 60 seconds (1 minute) * 180 = 3 hours
     public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
@@ -157,7 +165,7 @@ public class WeatherSyncAdapter extends AbstractThreadedSyncAdapter {
             getWeatherDataFromJson(forecastJsonStr, locationQuery);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
-            // If the code didn't successfully get the weather data, there's no point in attempting
+            // If the code didn't successfully get the com.tandon.aishwary.weather data, there's no point in attempting
             // to parse it.
             setLocationStatus(getContext(), LOCATION_STATUS_SERVER_DOWN);
         } catch (JSONException e) {
@@ -255,7 +263,7 @@ public class WeatherSyncAdapter extends AbstractThreadedSyncAdapter {
 
             long locationId = addLocation(locationSetting, cityName, cityLatitude, cityLongitude);
 
-            // Insert the new weather information into the database
+            // Insert the new com.tandon.aishwary.weather information into the database
             Vector<ContentValues> cVVector = new Vector<ContentValues>(weatherArray.length());
 
             // OWM returns daily forecasts based upon the local time of the city that is being
@@ -264,7 +272,7 @@ public class WeatherSyncAdapter extends AbstractThreadedSyncAdapter {
 
             // Since this data is also sent in-order and the first day is always the
             // current day, we're going to take advantage of that to get a nice
-            // normalized UTC date for all of our weather.
+            // normalized UTC date for all of our com.tandon.aishwary.weather.
 
             Time dayTime = new Time();
             dayTime.setToNow();
@@ -300,8 +308,8 @@ public class WeatherSyncAdapter extends AbstractThreadedSyncAdapter {
                 windSpeed = dayForecast.getDouble(OWM_WINDSPEED);
                 windDirection = dayForecast.getDouble(OWM_WIND_DIRECTION);
 
-                // Description is in a child array called "weather", which is 1 element long.
-                // That element also contains a weather code.
+                // Description is in a child array called "com.tandon.aishwary.weather", which is 1 element long.
+                // That element also contains a com.tandon.aishwary.weather code.
                 JSONObject weatherObject =
                         dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
                 description = weatherObject.getString(OWM_DESCRIPTION);
@@ -336,12 +344,13 @@ public class WeatherSyncAdapter extends AbstractThreadedSyncAdapter {
                 cVVector.toArray(cvArray);
                 getContext().getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI, cvArray);
 
-                //delete old weather data so we dont build up an endless history
+                //delete old com.tandon.aishwary.weather data so we dont build up an endless history
 
                 getContext().getContentResolver().delete(WeatherContract.WeatherEntry.CONTENT_URI,
                         WeatherContract.WeatherEntry.COLUMN_DATE + " <= ?",
                         new String[] {Long.toString(dayTime.setJulianDay(julianStartDay-1))});
-
+                updateMuzei();
+                updateWidgets();
                 notifyWeather();
             }
 
@@ -352,6 +361,23 @@ public class WeatherSyncAdapter extends AbstractThreadedSyncAdapter {
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
             setLocationStatus(getContext(), LOCATION_STATUS_SERVER_INVALID);
+        }
+    }
+
+    private void updateWidgets() {
+        Context context = getContext();
+        // Setting the package ensures that only components in our app will receive the broadcast
+        Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED)
+                .setPackage(context.getPackageName());
+        context.sendBroadcast(dataUpdatedIntent);
+    }
+    private void updateMuzei() {
+        // Muzei is only compatible with Jelly Bean MR1+ devices, so there's no need to update the
+        // Muzei background on lower API level devices
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            Context context = getContext();
+            context.startService(new Intent(ACTION_DATA_UPDATED)
+                    .setClass(context, WeatherMuzeiSource.class));
         }
     }
 
@@ -369,7 +395,7 @@ public class WeatherSyncAdapter extends AbstractThreadedSyncAdapter {
              long lastSync = prefs.getLong(lastNotificationKey, 0);
 
              if (System.currentTimeMillis() - lastSync >= DAY_IN_MILLIS){
-                 //Last sync was more than one day ago, lets send a notification with the weather
+                 //Last sync was more than one day ago, lets send a notification with the com.tandon.aishwary.weather
                  String locationQuery = Utility.getPreferredLocation(context);
 
                  Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationQuery, System.currentTimeMillis());
@@ -386,8 +412,33 @@ public class WeatherSyncAdapter extends AbstractThreadedSyncAdapter {
 
                      int iconId = Utility.getIconResourceForWeatherCondition(weatherId);
                      Resources resources = context.getResources();
-                     Bitmap largeIcon = BitmapFactory.decodeResource(resources,
-                             Utility.getArtResourceForWeatherCondition(weatherId));
+                     int artResourceId = Utility.getArtResourceForWeatherCondition(weatherId);
+                     String artUrl = Utility.getArtUrlForWeatherCondition(context, weatherId);
+
+                     // On Honeycomb and higher devices, we can retrieve the size of the large icon
+                     // Prior to that, we use a fixed size
+                     @SuppressLint("InlinedApi")
+                     int largeIconWidth = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB
+                             ? resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_width)
+                             : resources.getDimensionPixelSize(R.dimen.notification_large_icon_default);
+                     @SuppressLint("InlinedApi")
+                     int largeIconHeight = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB
+                             ? resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_height)
+                             : resources.getDimensionPixelSize(R.dimen.notification_large_icon_default);
+
+                     // Retrieve the large icon
+                     Bitmap largeIcon;
+                     try {
+                         largeIcon = Glide.with(context)
+                                 .load(artUrl)
+                                 .asBitmap()
+                                 .error(artResourceId)
+                                 .fitCenter()
+                                 .into(largeIconWidth, largeIconHeight).get();
+                     } catch (InterruptedException | ExecutionException e) {
+                         Log.e(LOG_TAG, "Error retrieving large icon from " + artUrl, e);
+                         largeIcon = BitmapFactory.decodeResource(resources, artResourceId);
+                     }
                      String title = context.getString(R.string.app_name);
 
                      //Define the text of the forecast
@@ -397,10 +448,10 @@ public class WeatherSyncAdapter extends AbstractThreadedSyncAdapter {
                              Utility.formatTemperature(context, low));
 
                      // NotificationCompatBuilder is a very convenient way to build backward-compatible
-                     // notifications.  Just throw in some data.
+                     // notifications.
                      NotificationCompat.Builder mBuilder =
                              new NotificationCompat.Builder(getContext())
-                             .setColor(resources.getColor(R.color.weather_light_blue))
+                             .setColor(resources.getColor(R.color.primary_light))
                              .setSmallIcon(iconId)
                              .setLargeIcon(largeIcon)
                              .setContentTitle(title)
@@ -440,7 +491,7 @@ public class WeatherSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     /**
-     * Helper method to handle insertion of a new location in the weather database.
+     * Helper method to handle insertion of a new location in the com.tandon.aishwary.weather database.
      *
      * @param locationSetting The location string used to request updates from the server.
      * @param cityName A human-readable city name, e.g "Mountain View"

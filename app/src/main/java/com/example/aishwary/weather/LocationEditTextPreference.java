@@ -12,6 +12,7 @@ import android.util.AttributeSet;
 import android.widget.Button;
 import android.widget.EditText;
 
+
 /**
  * Created by Aishwary on 8/30/2015.
  */
@@ -37,6 +38,7 @@ public class LocationEditTextPreference extends EditTextPreference {
     @Override
     protected void showDialog(Bundle state) {
         super.showDialog(state);
+
         EditText et = getEditText();
         et.addTextChangedListener(new TextWatcher() {
             @Override
@@ -53,7 +55,7 @@ public class LocationEditTextPreference extends EditTextPreference {
             public void afterTextChanged(Editable s) {
                 Dialog d = getDialog();
 
-                if (d instanceof AlertDialog){
+                if (d instanceof AlertDialog) {
                     AlertDialog dialog = (AlertDialog) d;
                     Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                     //check if the edit text is empty

@@ -16,14 +16,11 @@ public class WeatherContract {
     // content authority is the package name for the app, which is guaranteed to be unique on the
     // device.
     public static final String CONTENT_AUTHORITY = "com.example.aishwary.weather";
-
     // Use CONTENT_AUTHORITY to create the base of all URI's which apps will use to contact
     // the content provider.
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
     // Possible paths (appended to base content URI for possible URI's)
-    // For instance, content://com.example.android.sunshine.app/weather/ is a valid path for
-    // looking at weather data. content://com.example.android.sunshine.app/givemeroot/ will fail,
-    // as the ContentProvider hasn't been given any information on what to do with "givemeroot".
+
 
     public static final String PATH_WEATHER = "weather";
     public static final String PATH_LOCATION = "location";
@@ -59,8 +56,7 @@ public class WeatherContract {
 
         public static final String COLUMN_LOCATION_SETTING = "location_setting";
 
-        // Human readable location string, provided by the API.  Because for styling,
-        // "Mountain View" is more recognizable than 94043.
+
         public static final String COLUMN_CITY_NAME = "city_name";
 
         // In order to uniquely pinpoint the location on the map when we launch the
@@ -74,7 +70,7 @@ public class WeatherContract {
 
     }
 
-    /* Inner class that defines the table contents of the weather table */
+    /* Inner class that defines the table contents of the com.tandon.aishwary.weather table */
     public static final class WeatherEntry implements BaseColumns {
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_WEATHER).build();
@@ -95,7 +91,7 @@ public class WeatherContract {
         // Weather id as returned by API, to identify the icon to be used
         public static final String COLUMN_WEATHER_ID = "weather_id";
 
-        // Short description and long description of the weather, as provided by API.
+        //
         // e.g "clear" vs "sky is clear".
         public static final String COLUMN_SHORT_DESC = "short_desc";
 
