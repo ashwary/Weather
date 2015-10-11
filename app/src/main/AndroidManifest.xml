@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.aishwary.weather">
+    package="com.tandon.aishwary.weather">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -16,12 +16,12 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name="com.tandon.aishwary.weather.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.Main">
             <intent-filter>
@@ -32,33 +32,33 @@
         </activity>
 
         <activity
-            android:name=".DetailActivity"
+            android:name="com.tandon.aishwary.weather.DetailActivity"
             android:label="@string/title_activity_detail"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName="com.tandon.aishwary.weather.MainActivity"
             android:theme="@style/AppTheme.Details">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.aishwary.weather.MainActivity" />
+                android:value="com.tandon.aishwary.weather.MainActivity" />
         </activity>
 
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.tandon.aishwary.weather.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName="com.tandon.aishwary.weather.MainActivity"
             android:theme="@style/SettingsTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.aishwary.weather.MainActivity" />
+                android:value="com.tandon.aishwary.weather.MainActivity" />
 
         </activity>
 
         <provider
-            android:name=".data.WeatherProvider"
+            android:name="com.tandon.aishwary.weather.data.WeatherProvider"
             android:authorities="@string/content_authority"
             android:exported="false"
             android:syncable="true" />
 
-        <service android:name=".sync.WeatherAuthenticatorService">
+        <service android:name="com.tandon.aishwary.weather.sync.WeatherAuthenticatorService">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
@@ -69,7 +69,7 @@
         </service>
         <!-- The SyncAdapter service -->
         <service
-            android:name=".sync.WeatherSyncService"
+            android:name="com.tandon.aishwary.weather.sync.WeatherSyncService"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
@@ -80,7 +80,7 @@
         </service>
         <!-- GCM receiver -->
         <!-- Muzei Extension -->
-        <service android:name=".muzei.WeatherMuzeiSource"
+        <service android:name="com.tandon.aishwary.weather.muzei.WeatherMuzeiSource"
             android:icon="@drawable/ic_muzei"
             android:label="@string/app_name"
             android:description="@string/muzei_description" >
@@ -93,7 +93,7 @@
 
         <!-- Today Widget -->
         <receiver
-            android:name=".widget.TodayWidgetProvider"
+            android:name="com.tandon.aishwary.weather.widget.TodayWidgetProvider"
             android:label="@string/title_widget_today">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -104,10 +104,10 @@
                 android:resource="@xml/widget_info_today" />
         </receiver>
 
-        <service android:name=".widget.TodayWidgetIntentService" />
+        <service android:name="com.tandon.aishwary.weather.widget.TodayWidgetIntentService" />
 
         <receiver
-            android:name=".widget.DetailWidgetProvider"
+            android:name="com.tandon.aishwary.weather.widget.DetailWidgetProvider"
             android:enabled="@bool/widget_detail_enabled"
             android:label="@string/title_widget_detail">
             <intent-filter>
@@ -119,7 +119,7 @@
                 android:resource="@xml/widget_info_detail" />
         </receiver>
         <service
-            android:name=".widget.DetailWidgetRemoteViewsService"
+            android:name="com.tandon.aishwary.weather.widget.DetailWidgetRemoteViewsService"
             android:enabled="@bool/widget_detail_enabled"
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />

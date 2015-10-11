@@ -1,7 +1,7 @@
 <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/fragment_forecast"
-    android:name="com.example.aishwary.weather.ForecastFragment"
+    android:name="com.tandon.aishwary.weather.ForecastFragment"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:sharedElementTransitions="true"/>

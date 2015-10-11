@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:custom= "http://schemas.android.com/apk/res/com.example.aishwary.weather"
+    xmlns:custom= "http://schemas.android.com/apk/res/com.tandon.aishwary.weather"
                   android:layout_width="match_parent"
                   android:layout_height="match_parent">
 
-    <com.example.aishwary.weather.LocationEditTextPreference
+    <com.tandon.aishwary.weather.LocationEditTextPreference
         android:defaultValue="@string/pref_location_default"
         android:inputType="text"
         android:key="@string/pref_location_key"
@@ -14,7 +14,7 @@
         android:title="@string/pref_location_label"/>
 
     <ListPreference
-        android:defaultValue="@string/pref_units_metric"
+        android:defaultValue="@string/pref_units_celsius"
         android:entries="@array/pref_units_options"
         android:entryValues="@array/pref_units_values"
         android:key="@string/pref_units_key"
